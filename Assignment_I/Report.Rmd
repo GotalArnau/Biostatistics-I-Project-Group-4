@@ -1,0 +1,87 @@
+---
+title: "Assignment 1"
+author: "Isak Truedson [WRITE YOUR NAMES HERE]"
+output: pdf_document
+---
+
+# Introduction
+
+In this report we analyze the incidence of colon cancer in Sweden across calender year as well as by age and sex. We do this with the goal of describing the incidence rate in different groups and with a particular focus on its development over calender year. We find that X
+
+## Preamble: Loading data and initial set up
+
+We begin by loading the data, and setting up the dataframes needed for the analysis.
+
+```{r message = FALSE, warning = FALSE}
+
+# Set up ------------------------------------------------------------------
+library(tidyverse)
+```
+
+```{r message = FALSE, warning = FALSE}
+# Import and Clean Data --------------------------------------------------- 
+cases_data <- read_tsv(
+  "cases-2.tsv",
+  col_types = cols(
+    sex = col_factor(),
+    year = col_double(),
+    agegroup = col_factor(ordered = TRUE),
+    n = col_double()
+  )
+)
+
+population_data <- read_tsv(
+  "population-2.tsv",
+  col_types = cols(
+    sex = col_factor(),
+    year = col_double(),
+    agegroup = col_factor(ordered = TRUE),
+    n_pop = col_double()
+  )
+)
+
+#Joins the two df by matching values on vectors and rename columns
+merged_data <- full_join(cases_data, population_data) |> rename("n_cases" = "n")
+```
+
+
+## Question 1
+We begin by exploring the number of colon cancer cases in each age group as well as by sex.
+```{r}
+#aggregate no. cases for all years by age group and plot
+merged_data |> 
+  ggplot(aes(x = n_cases, y = agegroup, fill = sex)) + 
+  geom_col(position = "dodge") + 
+  labs(fill = "Sex", x = "Total Cases", y = "Age Group") +
+  theme_minimal()
+```
+The graph tells us that the number of cases are greater in the older age groups. There are also some differences between males and females: females have a greater number of cases in the two oldest categories, while males, seemingly, have a greater number of cases in most other age groups. This sex difference needs further investigation, but will not be of main interest here.
+
+## Question 2
+Here we display the developmen of the number of cases over calendar years for men and women.
+```{r}
+#plot the the total number of cases in each calendar year by males and
+merged_data |>
+  group_by(year, sex) |>
+  summarise(total_cases = sum(n_cases), .groups = "drop") |>
+  ggplot(aes(x = year, y = total_cases, color = sex)) +
+  geom_line(linewidth = 1.2) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(color = "Sex", x = "Year", y = "Total Cases") +
+  theme_minimal()
+```
+We clearly see that the number of cases have increased for both males and females.
+
+## Question 3
+An important aspect to look at is how the age distribution has simultaneously developed over the same period, we do so now.
+```{r}
+#population size for each year presented in each age group for each sex.
+merged_data |> 
+  ggplot(aes(x = year, y = agegroup, fill = n_pop)) +
+  geom_tile() + 
+  facet_wrap(~ sex) + 
+  scale_fill_viridis_c(labels = scales::comma, option = "turbo") +
+  labs(fill = "Population Size", x = "Year", y = "Age Group")
+
+```
+The graph tells us that the population size has gotten bigger in the older age groups. This is indicated by the greener shade of older age groups in later years, compared to bluer shades in earlier years. This shows an aging population structure.
