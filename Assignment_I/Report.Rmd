@@ -18,7 +18,7 @@ We begin by loading the data, and setting up the dataframes needed for the analy
 
 # Set up ------------------------------------------------------------------
 library(tidyverse)
-library(rms)
+#library(rms)
 ```
 
 ```{r message = FALSE, warning = FALSE}
@@ -50,7 +50,7 @@ merged_data <- full_join(cases_data, population_data) |> rename("n_cases" = "n")
 
 ## Question 1
 We begin by exploring the number of colon cancer cases in each age group as well as by sex.
-```{r}
+```{r question 1}
 #aggregate no. cases for all years by age group and plot
 merged_data |> 
   ggplot(aes(x = n_cases, y = agegroup, fill = sex)) + 
@@ -62,7 +62,7 @@ The graph tells us that the number of cases are greater in the older age groups.
 
 ## Question 2
 Here we display the developmen of the number of cases over calendar years for men and women.
-```{r}
+```{r question 2}
 #plot the the total number of cases in each calendar year by males and
 merged_data |>
   group_by(year, sex) |>
@@ -77,7 +77,7 @@ We clearly see that the number of cases have increased for both males and female
 
 ## Question 3
 An important aspect to look at is how the age distribution has simultaneously developed over the same period, we do so now.
-```{r}
+```{r question 3}
 #population size for each year presented in each age group for each sex.
 merged_data |> 
   ggplot(aes(x = year, y = agegroup, fill = n_pop)) +
@@ -106,7 +106,7 @@ The graph tells us that the population size has gotten bigger in the older age g
 
 
 ## Question 6
-```{r}
+```{r question 6}
 
 # Aggregate cases and population by year and sex
 total_data <- merged_data %>%
@@ -240,7 +240,7 @@ annual percentage change in incidence rate to vary
 over calendar time and between sexes.
 
 ## Question 8
-```{r}
+```{r question 8}
 # Predicted crude colon cancer incidence rates per 100,000 individuals in 1970 and 2020,
 # stratified by sex, using the Poisson regression model with a year--sex interaction.
 pred_data <- expand.grid(
@@ -285,7 +285,7 @@ between calendar year and log incidence rate
 appropriately describes the observed trends.
 
 ## Question 9
-```{r}
+```{r question 9}
 
 # Plotting estimated incidence rates
 predicted_data <- expand.grid(
@@ -345,7 +345,6 @@ combined_data <- rbind(
   predicted_data[, c("year", "sex", "incidence_per_100000", "source")]
 )
 
-# 4. Creamos el gráfico con los dos 'geom_smooth' filtrados o usando el color como grupo
 ggplot(combined_data, aes(x = year, y = incidence_per_100000, color = source)) +
   geom_smooth(method = "loess", se = FALSE, linewidth = 1) +
   facet_wrap(~sex) +
@@ -363,7 +362,7 @@ ggplot(combined_data, aes(x = year, y = incidence_per_100000, color = source)) +
 
 To properly estimate the incidence rate of colon cancer while controlling for the confounding effect of an aging population, we fit age-specific Poisson regression model.
 
-```{r, eval = FALSE, echo = FALSE, warning = FALSE}
+```{r question 10, eval = FALSE, echo = FALSE, warning = FALSE}
 # 1. Create a numeric age index (1 to 18) corresponding to the 18 age groups (0-4 to 85-89)
 merged_data$age_index <- as.integer(
   factor(
@@ -496,7 +495,7 @@ This imply that the model violates the standard Poisson assumption that variance
 
 ## Question 11:
 
-```{r}
+```{r question 11}
 # Create a prediction data frame for specific years (1970, 2020), sexes, and age groups
 pred_q11 <- expand.grid(
   year = c(1970, 2020),
@@ -532,5 +531,71 @@ pred_q11 %>%
 The predicted incidence rates clearly illustrate that colon cancer risk increases exponentially with age, being dramatically higher in older cohorts (e.g., ~300 per 100,000 in the 85–89 age group) compared to middle-aged groups (~20–27 per 100,000 in the 50–54 age group). Furthermore, the rates consistently increased from 1970 to 2020 across all age categories and both sexes, reflecting rising overall temporal trends, with males generally exhibiting slightly higher predicted rates than females within the same age and year strata.
 
 Calendar year and age were modeled using cubic polynomials to capture non-linear temporal trends and the exponential increase in colon cancer risk among older cohorts. Sex differences and temporal shifts were accounted for through baseline terms and a Year $\times$ Sex interaction. Additionally, a Year $\times$ Age interaction allowed time trends to vary across age groups due to changing diagnostics or risk exposures. Finally, the Age $\times$ Sex interaction was omitted to maintain model parsimoniousness, assuming consistent age-related risk structures across sexes.
+
+## Question 12 
+
+We age-standardize the incidence rates to take into account differences in the age distribution between calendar years. Here, we standardize the incidence rate with respect to age by year and sex, based on the sex-specific age-distribution in 2022.
+
+```{r question 12}
+# Q12 : Age-standardized incidence rates
+data_2022 <- population_data |> 
+  filter(year == 2022) |>
+  select(sex, agegroup, n_pop_2022 = n_pop)
+
+data_std <- merged_data |>
+  mutate(incidence_rate = n_cases / n_pop) |>
+  left_join(data_2022, by = c("sex", "agegroup")) |>
+  group_by(year, sex) |>
+  summarise(rate = sum(incidence_rate * n_pop_2022) / sum(n_pop_2022) * 100000, .groups = "drop_last" ) 
+```
+
+```{r question 12 plot, echo=FALSE, fig.height=4, fig.width=9}
+plot_std <- ggplot(data_std, aes(x = year, y = rate)) +
+  geom_line() +
+  geom_smooth(method = "loess", se = FALSE, colour = "blue") +
+  facet_wrap(~sex) +
+  labs(title = "Age-standardized incidence rate of colon cancer over calendar year",
+       x = "Calendar year",
+       y = "(Age-standardized) Incidence rate per 100,000"
+  ) +  theme_minimal() + theme(legend.position = "bottom", plot.title = element_text(face = "bold", size = 15))
+
+plot_std
+```
+
+```{r question 12 comparison with 6, echo=FALSE, fig.height=5, fig.width=9}
+
+# Comparison q6 vs q12
+data_std <- mutate(data_std, analysis = "Age-standardized rate")
+crude_data <- merged_data |>
+  group_by(year, sex) |>
+  summarise(rate = sum(n_cases) / sum(n_pop) * 100000, .groups = "drop") |>
+  mutate(analysis = "Crude rate")
+comp_data <- bind_rows(crude_data, data_std)
+
+comp_plot <- ggplot(comp_data, aes(x = year, y = rate, color = analysis)) +
+  geom_line(linewidth = 0.7, alpha = 0.8) +
+  geom_smooth(method = "loess", se = FALSE, linewidth = 1.1) +
+  facet_wrap(~sex) +
+  labs(
+    title = "Comparison of age-standardized (Q12) vs crude (Q6) incidence rates",
+    x = "Calendar year",
+    y = "Incidence rate per 100,000",
+    color = "Incidence rate analysis type"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_text(face = "bold", size = 15)
+  )
+comp_plot
+```
+
+The obtained graphs show that the age-standardized incidence rate across years for men follows a similar but more moderate increase between 1970 and 2022 compared to the graph in question 6, whereas the age-standardized incidence rate for women is quite different. In the standardized graph, the curve is much flatter between 1970 and the 1990s before increasing moderately, in comparison to the continuous increase shown in question 6.
+
+The apparent increase in colon cancer cases observed over the years, especially among women, thus seems to be largely due to the ageing of the Swedish population, rather than an increase in biological risk. As previously noted, it could be explained by overall increase in life expectancy in Sweden (increase of 8.41 years from 1970 to 2022 [@GlobalEcon]) but also by the fact that women live 3.3 years longer than men on average in Sweden [@StatsSweden]) and more prevalence for colon cancer in older age groups (observed in question 1).
+
+
+
+
+
+
 
 

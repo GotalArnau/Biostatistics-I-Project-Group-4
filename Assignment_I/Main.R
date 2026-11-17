@@ -5,7 +5,7 @@ library(ggpubr)
 
 # Import and Clean Data --------------------------------------------------- 
 cases_data <- read_tsv(
-  "Assignment_I/cases-2.tsv",
+  "cases-2.tsv",
   col_types = cols(
     sex = col_factor(),
     year = col_double(),
@@ -15,7 +15,7 @@ cases_data <- read_tsv(
 )
 
 population_data <- read_tsv(
-  "Assignment_I/population-2.tsv",
+  "population-2.tsv",
   col_types = cols(
     sex = col_factor(),
     year = col_double(),
@@ -60,6 +60,47 @@ merged_data |>
 
 
 # Age standardization -----------------------------------------------------
+# Q12 : Age-standardized incidence rates
+data_2022 <- population_data |> 
+  filter(year == 2022) |>
+  select(sex, agegroup, n_pop_2022 = n_pop)
 
+data_std <- merged_data |>
+  mutate(incidence_rate = n_cases / n_pop) |>
+  left_join(data_2022, by = c("sex", "agegroup")) |>
+  group_by(year, sex) |>
+  summarise(rate = sum(incidence_rate * n_pop_2022) / sum(n_pop_2022) * 100000, .groups = "drop_last" ) 
 
+plot_std <- ggplot(data_std, aes(x = year, y = rate)) +
+  geom_line() +
+  geom_smooth(method = "loess", se = FALSE, colour = "blue") +
+  facet_wrap(~sex) +
+  labs(title = "Age-standardized incidence rate of colon cancer over calendar year",
+       x = "Calendar year",
+       y = "(Age-standardized) Incidence rate per 100,000"
+  ) +  theme_minimal() + theme(legend.position = "bottom", plot.title = element_text(face = "bold", size = 15))
 
+plot_std
+
+# Comparison q6 vs q12
+data_std <- mutate(data_std, analysis = "Age-standardized rate")
+crude_data <- merged_data |>
+  group_by(year, sex) |>
+  summarise(rate = sum(n_cases) / sum(n_pop) * 100000, .groups = "drop") |>
+  mutate(analysis = "Crude rate")
+comp_data <- bind_rows(crude_data, data_std)
+
+comp_plot <- ggplot(comp_data, aes(x = year, y = rate, color = analysis)) +
+  geom_line(linewidth = 0.7, alpha = 0.8) +
+  geom_smooth(method = "loess", se = FALSE, linewidth = 1.1) +
+  facet_wrap(~sex) +
+  labs(
+    title = "Comparison of age-standardized (Q12) vs crude (Q6) incidence rates",
+    x = "Calendar year",
+    y = "Incidence rate per 100,000",
+    color = "Incidence rate analysis type"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_text(face = "bold", size = 15)
+  )
+comp_plot
