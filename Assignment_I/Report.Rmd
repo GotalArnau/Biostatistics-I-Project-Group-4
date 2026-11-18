@@ -309,21 +309,6 @@ ggplot(predicted_data, aes(x = year, y = predicted_rate)) +
   theme_minimal()
 
 
-```
-
-The predicted incidence rates for both sexes increase monotonically. In women, there is a clear nonlinear relationship between predicted incidence rate and calendar year, with a slower increase around 2000 followed by a stronger increase towards 2022. This change in slope is more clearly defined than in the observed incidence rates previously calculated.
-
-In men, the relationship appears almost linear, with less pronounced curvature than in the observed incidence rates. The predicted incidence rate remains higher in women throughout the observed period similarly to in the observed data.
-
-The LOESS smoother matches the predicted incidence rates closely which is expected as a cubic Poisson regression model produces a smooth trend.
-
-```{r, eval = FALSE, warning = FALSE}
-predicted_data <- expand.grid(
-  year = 1970:2022,
-  sex = c("Female", "Male"),
-  total_population = 100000
-)
-
 predicted_data$incidence_per_100000 <- predict(
   model_cubic,
   newdata = predicted_data,
@@ -350,6 +335,11 @@ ggplot(combined_data, aes(x = year, y = incidence_per_100000, color = source)) +
   ) +
   theme_minimal()
 ```
+The predicted incidence rates for both sexes increase monotonically. In women, there is a clear nonlinear relationship between predicted incidence rate and calendar year, with a slower increase around 1995-2000 followed by a stronger increase towards 2022. This decrease in slope is less dramatic in the predicted incidence rates than in the observed incidence rates.
+
+In men, the relationship appears almost linear, with less pronounced curvature than in the observed incidence rates. The predicted incidence rate remains higher in women throughout the observed period similarly to in the observed data.
+
+The LOESS smoother matches the predicted incidence rates closely which is expected as a cubic Poisson regression model produces a smooth trend.
 
 ## Question 10:
 
@@ -655,7 +645,7 @@ Our modelling focused on how incidence changed over calendar time and whether th
 differed by age and sex. We therefore included age–year and sex–year interactions. 
 We omitted the age–sex interaction to  focuse on time trends therefore the male to female rate ratio is assumed to be the same across ages within each year.
 Without controlling for age the predicted male to female incidence rate ratio was $26.49/28.43 = 0.932$ in $1970$ and $49.20/51.09 = 0.963$ in $2020$. 
-Ttherefore predicted crude incidence was about $6.8\%$ and $3.7\%$ lower among males, respectively. 
+Therefore predicted crude incidence was about $6.8\%$ and $3.7\%$ lower among males, respectively. 
 After controlling for age the corresponding ratios were 1.096 and 1.118, that is, higher predicted 
 incidence among males at the same age.Their increase suggests a slightly greater  increase(statistical significance not verified) in incidence among males between these years.eventhough the graphs in Questions 6 and 9 suggest higher overall incidence among females
 it does not imply higher incidence at the same age.
@@ -665,3 +655,10 @@ Non-standardised rates are useful when describing the actual incidence in a popu
  of colon cancer cases. Age-standardised rates are useful when comparing incidence across calendar years while holding
 age composition constant. For example, comparing rates in 1970 and 2020 using the
  same reference population helps assess whether incidence has increased beyond changes attributable to population ageing. 
+ 
+## AI declaration
+
+
+
+
+
