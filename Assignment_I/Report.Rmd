@@ -175,7 +175,7 @@ There is, however, an issue with these estimates making them inappropriate: $N^{
 
 ## Question 6
 
-```{r question 6}
+```{r question 6, echo = TRUE}
 
 # Question 6: Plotting incidence rate per 100,000 of colon cancer over calender time
 ggplot(total_data, aes(x = year, y = incidence_per_100000)) +
@@ -200,7 +200,7 @@ Incidence rates of colon cancer has been steadily increasing between 1970 and 20
 
 ## Question 7
 
-```{r}
+```{r, echo = TRUE}
 # Linear model, no interaction
 model <- glm(
   total_cases~year + sex + 
@@ -235,12 +235,33 @@ model_cubic <- glm(
 )
 
 # Compare model fit
-AIC(model, model_linear, model_quadratic, model_cubic)
+# AIC(model, model_linear, model_quadratic, model_cubic)
 
 # Likelihood ratio tests
-anova(model, model_linear, model_cubic, test = "Chisq")
+# anova(model, model_linear, model_cubic, test = "Chisq")
+#summary(model_cubic)
+```
+```{r}
 
-summary(model_cubic)
+# Extract coefficient table
+coef_table <- as.data.frame(
+  summary(model_cubic)$coefficients
+)
+
+coef_table$Term <- rownames(coef_table)
+
+coef_table <- coef_table %>%
+  select(Term, Estimate, `Std. Error`, `Pr(>|z|)`) %>%
+  mutate(across(where(is.numeric), ~ signif(.x, 3)))
+
+knitr::kable(
+  coef_table,
+  row.names = FALSE,
+  col.names = c("Term", "Estimate", "Std. Error", "p-value"),
+  caption = "Coefficient estimates for the cubic Poisson regression model",
+  booktabs = TRUE
+)
+
 ```
 
 The Poisson regression model was fitted as
@@ -268,7 +289,7 @@ The cubic model was therefore selected, allowing the annual percentage change in
 
 ## Question 8
 
-```{r question 8}
+```{r question 8, echo = TRUE}
 # Predicted crude colon cancer incidence rates per 100,000 individuals in 1970 and 2020,
 # stratified by sex, using the Poisson regression model with a year--sex interaction.
 pred_data <- expand.grid(
@@ -283,6 +304,8 @@ pred_data$predicted_rate <- predict(
   type = "response"
 )
 
+```
+```{r}
 # Table
 
 pred_data %>%
@@ -292,7 +315,6 @@ pred_data %>%
     col.names = c("Year", "Sex", "Predicted incidence per 100,000"),
     caption = "Predicted crude colon cancer incidence rates"
   )
-
 ```
 
 The calendar year was modeled as a continuous variable
@@ -309,7 +331,7 @@ The Poisson regression model predicts an increase in incidence rate from 28.43 t
 
 ## Question 9
 
-```{r question 9}
+```{r question 9, echo = TRUE}
 
 # Plotting estimated incidence rates
 predicted_data <- expand.grid(
@@ -324,6 +346,22 @@ predicted_data$predicted_rate <- predict(
   type = "response"
 )
 
+predicted_data$incidence_per_100000 <- predict(
+  model_cubic,
+  newdata = predicted_data,
+  type = "response"
+)
+
+total_data$source <- "Observed"
+predicted_data$source <- "Predicted"
+
+combined_data <- rbind(
+  total_data[, c("year", "sex", "incidence_per_100000", "source")],
+  predicted_data[, c("year", "sex", "incidence_per_100000", "source")]
+)
+
+```
+```{r}
 ggplot(predicted_data, aes(x = year, y = predicted_rate)) +
   geom_line(colour = "red") +
   geom_smooth(
@@ -338,21 +376,6 @@ ggplot(predicted_data, aes(x = year, y = predicted_rate)) +
     y = "Predicted incidence rate per 100,000"
   ) +
   theme_minimal()
-
-
-predicted_data$incidence_per_100000 <- predict(
-  model_cubic,
-  newdata = predicted_data,
-  type = "response"
-)
-
-total_data$source <- "Observed"
-predicted_data$source <- "Predicted"
-
-combined_data <- rbind(
-  total_data[, c("year", "sex", "incidence_per_100000", "source")],
-  predicted_data[, c("year", "sex", "incidence_per_100000", "source")]
-)
 
 ggplot(combined_data, aes(x = year, y = incidence_per_100000, color = source)) +
   geom_smooth(method = "loess", se = FALSE, linewidth = 1) +
@@ -426,7 +449,7 @@ summary(m2)
 # print(knot_placements)
 ```
 
-```{r}
+```{r, echo = TRUE}
 # 1. Create a numeric age index (1 to 18) corresponding to the 18 age groups (0-4 to 85-89)
 merged_data$age_index <- as.integer(
   factor(
@@ -461,6 +484,8 @@ m2 <- glm(
   data = merged_data
 )
 
+```
+```{r, eval = FALSE}
 # 5. Compare model fits using AIC to justify selecting the final model (m2)
 AIC(m_linear, m_poly_main, m2)
 
@@ -472,6 +497,34 @@ summary(m2)
 # 7. Compare models using an Analysis of Deviance (Likelihood Ratio Test)
 anova(m_linear, m_poly_main, m2, test = "Chisq")
 ```
+```{r}
+# Compare the three models
+model_table <- data.frame(
+  Model = c("Linear", "Cubic main effects",
+            "Cubic with interactions"),
+  AIC = c(AIC(m_linear), AIC(m_poly_main), AIC(m2)),
+  Residual_Deviance = c(
+    deviance(m_linear),
+    deviance(m_poly_main),
+    deviance(m2)
+  ),
+  DF = c(
+    df.residual(m_linear),
+    df.residual(m_poly_main),
+    df.residual(m2)
+  )
+)
+
+knitr::kable(
+  model_table,
+  digits = 2,
+  col.names = c("Model", "AIC", "Residual deviance", "Residual df"),
+  caption = "Comparison of age-adjusted Poisson regression models",
+  booktabs = TRUE
+)
+
+```
+
 
 $$
 \begin{aligned}
@@ -496,7 +549,7 @@ The final cubic interaction model was selected because it provides a superior fi
 - **Sex:** Included as a categorical variable to account for global baseline differences between males and females.
 - **Interactions:** Year $\times$ Age and Year $\times$ Sex interactions were included to allow temporal trends to vary across age groups and between sexes, while the Age $\times$ Sex interaction was omitted to preserve model parsimoniousness.
 
-```{r}
+```{r, echo = TRUE}
 # Calculate Pearson dispersion statistic for the final model (m2)
 (Pearson_disp_m2 <- sum(residuals(m2, type = "pearson")^2) / df.residual(m2))
 ```
@@ -507,7 +560,7 @@ This imply that the model violates the standard Poisson assumption that variance
 
 ## Question 11:
 
-```{r question 11}
+```{r question 11, echo = TRUE}
 # Create a prediction data frame for specific years (1970, 2020), sexes, and age groups
 pred_q11 <- expand.grid(
   year = c(1970, 2020),
@@ -548,7 +601,7 @@ Calendar year and age were modeled using cubic polynomials to capture non-linear
 
 We age-standardize the incidence rates to take into account differences in the age distribution between calendar years. Here, we standardize the incidence rate with respect to age by year and sex, based on the sex-specific age-distribution in 2022.
 
-```{r question 12}
+```{r question 12, echo = TRUE}
 # Q12 : Age-standardized incidence rates
 data_2022 <- population_data |> 
   filter(year == 2022) |>
@@ -610,7 +663,7 @@ The model follows the overall trend. It does not capture all the (noisy) rises a
  including the sharper increase among females during the 2000s and 
 the slower increase among males after around 2010
 
-```{r model_standardised_rates_calculation, echo=FALSE}
+```{r model_standardised_rates_calculation, echo = TRUE}
 
 predicted_rates <- expand.grid(
   year = sort(unique(merged_data$year)),
@@ -653,7 +706,7 @@ comparison <- bind_rows(
 )
 ```
 
-```{r model_standardised_rates_plot, echo=TRUE}
+```{r model_standardised_rates_plot}
 ggplot(comparison,
        aes(x = year, y = ASR, colour = Method)) +
   geom_line(linewidth = 0.9) +
