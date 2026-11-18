@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-In this report we analyze the incidence of colon cancer in Sweden across calender year as well as by age and sex. We do this with the goal of describing the incidence rate in different groups and with a particular focus on its development over calender year.
+In this report we analyze the incidence of colon cancer in Sweden across calendar year as well as by age and sex. We do this with the goal of describing the incidence rate in different groups and with a particular focus on its development over calendar year.
 
 
 ```{r}
@@ -123,18 +123,28 @@ p3 <- p3  +
   plot_annotation(tag_levels = "A")
 ```
 
-We begin by exploring the number of colon cancer cases in each age group as well as by sex. Graph A in figure 1 tells us that the number of cases are greater in the older age groups. There are also some differences between males and females: females have a greater number of cases in the three oldest categories, while males, seemingly, have a greater number of cases in most other age groups. That by itself does not mean that women are more likely to have colon cancer.
+We begin by exploring the number of colon cancer cases in each age group as well as by sex. Graph A in figure 1 tells us that the number of cases are greater in the older age groups. There are also some differences between males and females: females have a greater number of cases in the three oldest categories, while males, seemingly, have a greater number of cases in most other age groups. This, by itself, does not entail that women are at a higher risk of having colon cancer.
 
 ## Question 2
-In graph B in fiugre 1 we display the development of the number of cases over calendar year for men and women. We clearly see that the number of total cases have increased for both males and females. Around the year 2000 the rate of increase seems to have increased in both sex groups, indicating a non linear increase over the whole period.
+In graph B in figure 1 we display the development of the number of cases over calendar year for men and women. We clearly see that the number of total cases have increased for both males and females. Around the year 2000 the rate of increase seems to have increased in both sex groups, indicating a non linear increase over the whole period.
 
 
 ## Question 3
 
 An important aspect to look at is how the age distribution has simultaneously developed over the same period, we do so now. Graph C in figure 1 tells us that the population size has gotten bigger in the older age groups. This is indicated by the darker red shade in older age groups in later years, compared to lighter yellow shades in earlier years. This shows an aging population structure.
 
-# Question 4 and 5 
-Next, we calculate the annual stratum-specific incidence rate of colon cancer (1) and the annual crude incidence rate (2). That is, the rate of new cases of colon cancer during each year in each age and sex group. The data we have on the number of cases and on the total population (i.e. persons at risk) is stratified by the same age groups, making incidence calculation straightforward. Let $i$ denote the age group ($i = 1,\dots,A$), $j$ denote sex ($j \in \{\text{M},\text{F}\}$) and $t$ ($t \in \{1970, 1971, \dots, 2022\}$) denote calendar year, then for each calendar year $t$
+# Question 4 
+We check if the population file includes the same age groups and calendar years as the data file including the number of cases by running the following code:
+```{r, echo=TRUE, message= TRUE}
+
+merged_data <- full_join(cases_data, population_data) |> rename("n_cases" = "n")
+anyNA(merged_data)
+
+```
+We already merged the dataframes earlier, but here we explicitly check that the operation worked as intended, not producing any missing values.
+
+# Question 5
+Next, we calculate the annual stratum-specific incidence rate of colon cancer (1) and the annual crude incidence rate (2). That is, the rate of new cases of colon cancer during each year in each age and sex group. Let $i$ denote the age group ($i = 1,\dots,A$), $j$ denote sex ($j \in \{\text{M},\text{F}\}$) and $t$ ($t \in \{1970, 1971, \dots, 2022\}$) denote calendar year, then for each calendar year $t$
 
 $$
 \begin{align*}
@@ -161,7 +171,7 @@ total_data <- total_data %>%
   )
 ```
 
-There is, however, an issue with these estimates making them inappropriate: $N^{(t)}_{ij}$ is fixed for the whole year. Moreover, it could be measuring the population at the start of year $t$ or in the middle of year $t$, the exact reference points is unspecified in the data. A more appropriate measure would be to use the total person-time at risk in the denominator, allowing the measure to account for that the population at risk varies.
+There is, however, an issue with these estimates making them inappropriate: $N^{(t)}_{ij}$ is measured on July 1st and fixed for the whole year. A more appropriate measure would be to use the total person-time at risk in the denominator, allowing the measure to account for that the population at risk varies. However, this year mid-point measurement is a good approximation of the more correct estimate of incidence rates if the population at risk is fairly constant over year. 
 
 ## Question 6
 
@@ -374,7 +384,7 @@ ggplot(combined_data, aes(x = year, y = incidence_per_100000, color = source)) +
 
 ## Question 10:
 
-To properly estimate the incidence rate of colon cancer while controlling for the confounding effect of an aging population, we fit age-specific Poisson regression model.
+To properly estimate the incidence rate of colon cancer while controlling for the confounding effect of an aging population, we fit an age-specific Poisson regression model.
 
 ```{r question 10, eval = FALSE, echo = FALSE, warning = FALSE}
 # 1. Create a numeric age index (1 to 18) corresponding to the 18 age groups (0-4 to 85-89)
@@ -600,7 +610,6 @@ comp_plot <- ggplot(comp_data, aes(x = year, y = rate, color = analysis)) +
 comp_plot
 ```
 
-The obtained graphs show that the age-standardized incidence rate across years for men follows a similar but more moderate increase between 1970 and 2022 compared to the graph in question 6, whereas the age-standardized incidence rate for women is quite different. In the standardized graph, the curve is much flatter between 1970 and the 1990s before increasing moderately, in comparison to the continuous increase shown in question 6.
 
 The apparent increase in colon cancer cases observed over the years, especially among women, thus seems to be largely due to the ageing of the Swedish population, rather than an increase in biological risk. As previously noted, it could be explained by overall increase in life expectancy in Sweden (increase of 8.41 years from 1970 to 2022 [@GlobalEcon]) but also by the fact that women live 3.3 years longer than men on average in Sweden [@StatsSweden]) and more prevalence for colon cancer in older age groups (observed in question 1).
 
@@ -674,7 +683,7 @@ ggplot(comparison,
 ## Question 14 
 Our modelling focused on how incidence changed over calendar time and whether these time trends
 differed by age and sex. We therefore included age–year and sex–year interactions. 
-We omitted the age–sex interaction to  focuse on time trends therefore the male to female rate ratio is assumed to be the same across ages within each year.
+We omitted the age–sex interaction to  focus on time trends therefore the male to female rate ratio is assumed to be the same across ages within each year.
 Without controlling for age the predicted male to female incidence rate ratio was $26.49/28.43 = 0.932$ in $1970$ and $49.20/51.09 = 0.963$ in $2020$. 
 Ttherefore predicted crude incidence was about $6.8\%$ and $3.7\%$ lower among males, respectively. 
 After controlling for age the corresponding ratios were 1.096 and 1.118, that is, higher predicted 
@@ -686,3 +695,6 @@ Non-standardised rates are useful when describing the actual incidence in a popu
  of colon cancer cases. Age-standardised rates are useful when comparing incidence across calendar years while holding
 age composition constant. For example, comparing rates in 1970 and 2020 using the
  same reference population helps assess whether incidence has increased beyond changes attributable to population ageing. 
+ 
+## Declaration of AI use
+AI was used 
