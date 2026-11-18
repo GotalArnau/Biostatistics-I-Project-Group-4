@@ -1,6 +1,7 @@
 ---
-title: "Assignment 1"
+title: "Incidence of colon cancer in Sweden 1970-2022"
 author:
+  - "Group 4:"
   - "Isak Truedson"
   - "Alice Aznar de Jongh"
   - "Arnau Gómez Català"
