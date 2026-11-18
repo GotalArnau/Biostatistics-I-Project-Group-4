@@ -742,7 +742,7 @@ age composition constant. For example, comparing rates in 1970 and 2020 using th
  
 
 ## Acknowledgement of the use of generative AI
-During the preparation of this work, the authors used GPT-5 Auto (Open AI, https://chat.openai.com/) to fix syntax and logistical errors in the code. After using this tool, the authors reviewed and edited the content and take full responsibility for the content of the work. 
+During the preparation of this work, the authors used GPT-5 Auto (Open AI, https://chat.openai.com/) to fix syntax and logistical errors in the code as well as Gemini (Version 3.1 Pro, https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-pro) to improve spelling and grammar in the report. After using this tool, the authors reviewed and edited the content and take full responsibility for the content of the work. 
 
 
 
