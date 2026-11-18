@@ -9,6 +9,8 @@ link-citations: true
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
+  message = FALSE,
+  error = FALSE,
   fig.width = 6,
   fig.height = 3.5,
   out.width = "85%",
