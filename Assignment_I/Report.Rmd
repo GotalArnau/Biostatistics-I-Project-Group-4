@@ -1,14 +1,17 @@
 ---
-title: "Assignment 1"
+title: "Assignment 1 : Incidence of colon cancer in Sweden 1970-2022"
 author:
+  - "Group 4:"
   - "Isak Truedson"
   - "Alice Aznar de Jongh"
   - "Arnau Gómez Català"
-  - "Charlotte Carmen Ravelomanana Gonza"
+  - "Charlotte Carmen Ravelomanana Gonzalo"
   - "Aleksandr Terranova Chtyleva"
 output: pdf_document
 bibliography: references.bib
 link-citations: true
+header-includes:
+  - \usepackage{float}
 ---
 
 ```{r setup, include = FALSE}
@@ -133,7 +136,7 @@ In graph B in figure 1 we display the development of the number of cases over ca
 
 An important aspect to look at is how the age distribution has simultaneously developed over the same period, we do so now. Graph C in figure 1 tells us that the population size has gotten bigger in the older age groups. This is indicated by the darker red shade in older age groups in later years, compared to lighter yellow shades in earlier years. This shows an aging population structure.
 
-# Question 4 
+## Question 4 
 We check if the population file includes the same age groups and calendar years as the data file including the number of cases by running the following code:
 ```{r, echo=TRUE, message= TRUE}
 
@@ -143,7 +146,7 @@ anyNA(merged_data)
 ```
 We already merged the dataframes earlier, but here we explicitly check that the operation worked as intended; not producing any missing values.
 
-# Question 5
+## Question 5
 Next, we calculate the annual stratum-specific incidence rate of colon cancer (1) and the annual crude incidence rate (2). That is, the rate of new cases of colon cancer during each year in each age and sex group. Let $i$ denote the age group ($i = 1,\dots,A$), $j$ denote sex ($j \in \{\text{M},\text{F}\}$) and $t$ ($t \in \{1970, 1971, \dots, 2022\}$) denote calendar year, then for each calendar year $t$
 
 $$
@@ -175,7 +178,7 @@ There is, however, an issue with these estimates making them inappropriate: $N^{
 
 ## Question 6
 
-```{r question 6, echo = TRUE}
+```{r question 6, echo = TRUE, fig.cap="Colon cancer incidence rate over calendar year"}
 
 # Question 6: Plotting incidence rate per 100,000 of colon cancer over calender time
 ggplot(total_data, aes(x = year, y = incidence_per_100000)) +
@@ -186,12 +189,9 @@ ggplot(total_data, aes(x = year, y = incidence_per_100000)) +
     colour = "blue"
   ) +
   facet_wrap(~sex) +
-  labs(
-    title = "Colon cancer incidence rate over calendar year",
-    x = "Calendar year",
+  labs(x = "Calendar year",
     y = "Incidence rate per 100,000"
-  ) +
-  theme_minimal()
+  ) +  theme_minimal()
 ```
 
 The incidence rate for colon cancer has generally been higher in women than in men in the data between 1970-2022, with this difference becoming smaller towards the end of the observed period. A portion of this could be attributed to the difference in age distribution between men and women, with women living 3.3 years longer than men on average in Sweden [@StatsSweden] and colon cancer being most prevalent in older age groups as observed in question 1. However, life expectancy alone cannot explain this difference. To determine whether women are more likely to develop colon cancer than men of the same age it would be necessary to compare the incidence rate between men and women of the same age or implement age-standardization and determine whether the difference is statistically significant.
@@ -241,6 +241,7 @@ model_cubic <- glm(
 # anova(model, model_linear, model_cubic, test = "Chisq")
 #summary(model_cubic)
 ```
+
 ```{r}
 
 # Extract coefficient table
@@ -361,7 +362,14 @@ combined_data <- rbind(
 )
 
 ```
-```{r}
+
+The predicted incidence rates for both sexes increase monotonically. In women, there is a clear nonlinear relationship between predicted incidence rate and calendar year, with a slower increase around 1995-2000 followed by a stronger increase towards 2022. This decrease in slope is less dramatic in the predicted incidence rates than in the observed incidence rates.
+
+In men, the relationship appears almost linear, with less pronounced curvature than in the observed incidence rates. The predicted incidence rate remains higher in women throughout the observed period similarly to in the observed data.
+
+The LOESS smoother matches the predicted incidence rates closely which is expected as a cubic Poisson regression model produces a smooth trend.
+
+```{r q9 plot 1, fig.cap="Predicted colon cancer incidence rate over calendar year", fig.pos="H"}
 ggplot(predicted_data, aes(x = year, y = predicted_rate)) +
   geom_line(colour = "red") +
   geom_smooth(
@@ -371,29 +379,26 @@ ggplot(predicted_data, aes(x = year, y = predicted_rate)) +
   ) +
   facet_wrap(~sex) +
   labs(
-    title = "Predicted colon cancer incidence rate over calendar year",
     x = "Calendar year",
     y = "Predicted incidence rate per 100,000"
   ) +
   theme_minimal()
 
+```
+
+```{r q9 plot 2, fig.cap="Tendency comparison (LOESS): Observed vs Predicted", fig.pos="H"}
+
 ggplot(combined_data, aes(x = year, y = incidence_per_100000, color = source)) +
   geom_smooth(method = "loess", se = FALSE, linewidth = 1) +
   facet_wrap(~sex) +
   scale_color_manual(values = c("Observed" = "green3", "Predicted" = "blue")) +
-  labs(
-    title = "Tendency comparison (LOESS): Observed vs Predicted",
-    x = "Calendar year",
+  labs(x = "Calendar year",
     y = "Incidence rate per 100,000",
     color = "Type of data"
   ) +
   theme_minimal()
 ```
-The predicted incidence rates for both sexes increase monotonically. In women, there is a clear nonlinear relationship between predicted incidence rate and calendar year, with a slower increase around 1995-2000 followed by a stronger increase towards 2022. This decrease in slope is less dramatic in the predicted incidence rates than in the observed incidence rates.
 
-In men, the relationship appears almost linear, with less pronounced curvature than in the observed incidence rates. The predicted incidence rate remains higher in women throughout the observed period similarly to in the observed data.
-
-The LOESS smoother matches the predicted incidence rates closely which is expected as a cubic Poisson regression model produces a smooth trend.
 
 ## Question 10:
 
@@ -614,20 +619,18 @@ data_std <- merged_data |>
   summarise(rate = sum(incidence_rate * n_pop_2022) / sum(n_pop_2022) * 100000, .groups = "drop_last" ) 
 ```
 
-```{r question 12 plot, echo=FALSE, fig.height=4, fig.width=9}
+```{r question 12 plot, fig.cap="Age-standardized incidence rate of colon cancer over calendar year", fig.pos="H"}
 plot_std <- ggplot(data_std, aes(x = year, y = rate)) +
   geom_line() +
   geom_smooth(method = "loess", se = FALSE, colour = "blue") +
   facet_wrap(~sex) +
-  labs(title = "Age-standardized incidence rate of colon cancer over calendar year",
-       x = "Calendar year",
+  labs(x = "Calendar year",
        y = "(Age-standardized) Incidence rate per 100,000"
-  ) +  theme_minimal() + theme(legend.position = "bottom", plot.title = element_text(face = "bold", size = 15))
-
+  ) +  theme_minimal() + theme(legend.position = "bottom")
 plot_std
 ```
 
-```{r question 12 comparison with 6, echo=FALSE, fig.height=5, fig.width=9}
+```{r question 12 comparison with 6, echo=FALSE, fig.cap="Comparison of age-standardized (Q12) vs crude (Q6) incidence rates"}
 
 # Comparison q6 vs q12
 data_std <- mutate(data_std, analysis = "Age-standardized rate")
@@ -641,15 +644,12 @@ comp_plot <- ggplot(comp_data, aes(x = year, y = rate, color = analysis)) +
   geom_line(linewidth = 0.7, alpha = 0.8) +
   geom_smooth(method = "loess", se = FALSE, linewidth = 1.1) +
   facet_wrap(~sex) +
-  labs(
-    title = "Comparison of age-standardized (Q12) vs crude (Q6) incidence rates",
-    x = "Calendar year",
+  labs(x = "Calendar year",
     y = "Incidence rate per 100,000",
     color = "Incidence rate analysis type"
   ) +
   theme_minimal() +
-  theme(legend.position = "bottom", plot.title = element_text(face = "bold", size = 15)
-  )
+  theme(legend.position = "bottom")
 comp_plot
 ```
 
@@ -661,7 +661,7 @@ The apparent increase in colon cancer cases observed over the years, especially 
 Both methods show that incidence increases over time for males and females. 
 The model follows the overall trend. It does not capture all the (noisy) rises and falls
  including the sharper increase among females during the 2000s and 
-the slower increase among males after around 2010
+the slower increase among males after around 2010.
 
 ```{r model_standardised_rates_calculation, echo = TRUE}
 
@@ -706,7 +706,7 @@ comparison <- bind_rows(
 )
 ```
 
-```{r model_standardised_rates_plot}
+```{r model_standardised_rates_plot, fig.cap="Direct and model based age standardised incidence (Sex specific age weights from 2022)", fig.pos="H"}
 ggplot(comparison,
        aes(x = year, y = ASR, colour = Method)) +
   geom_line(linewidth = 0.9) +
@@ -714,11 +714,7 @@ ggplot(comparison,
   labs(
     x = "Calendar year",
     y = "Age standardised incidence per 100 000",
-    colour = "Method",
-    title = "Direct and model based age standardised incidence",
-    subtitle = "sex specific age weights from 2022"
-  ) +
-  theme_minimal()
+    colour = "Method" ) + theme_minimal() + theme(legend.position = "bottom")
 ```
 
 
@@ -740,4 +736,13 @@ age composition constant. For example, comparing rates in 1970 and 2020 using th
  same reference population helps assess whether incidence has increased beyond changes attributable to population ageing. 
  
 
+<<<<<<< HEAD
 ## Declaration of AI use
+=======
+## Acknowledgement of the use of generative AI
+During the preparation of this work, the authors used GPT-5 Auto (Open AI, https://chat.openai.com/) to fix syntax and logistical errors in the code as well as Gemini (Version 3.1 Pro, https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-pro) to improve spelling and grammar in the report. After using this tool, the authors reviewed and edited the content and take full responsibility for the content of the work. 
+
+## Bibliography
+
+
+>>>>>>> f35cfb8cfd0e0c5b721a4853da12d6dfbd33d0fa
