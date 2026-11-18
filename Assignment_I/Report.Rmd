@@ -1,6 +1,6 @@
 ---
 title: "Assignment 1"
-author: "Isak Truedson, Alice Aznar de Jongh, Arnau Gómez Català, [WRITE YOUR NAMES HERE]"
+author: "Isak Truedson, Alice Aznar de Jongh, Arnau Gómez Català, Charlotte Carmen Ravelomanana Gonza, Aleksandr Terranova Chtyleva"
 output: pdf_document
 bibliography: references.bib
 link-citations: true
@@ -582,3 +582,86 @@ comp_plot
 The obtained graphs show that the age-standardized incidence rate across years for men follows a similar but more moderate increase between 1970 and 2022 compared to the graph in question 6, whereas the age-standardized incidence rate for women is quite different. In the standardized graph, the curve is much flatter between 1970 and the 1990s before increasing moderately, in comparison to the continuous increase shown in question 6.
 
 The apparent increase in colon cancer cases observed over the years, especially among women, thus seems to be largely due to the ageing of the Swedish population, rather than an increase in biological risk. As previously noted, it could be explained by overall increase in life expectancy in Sweden (increase of 8.41 years from 1970 to 2022 [@GlobalEcon]) but also by the fact that women live 3.3 years longer than men on average in Sweden [@StatsSweden]) and more prevalence for colon cancer in older age groups (observed in question 1).
+
+
+## Question 13 
+Both methods show that incidence increases over time for males and females. 
+The model follows the overall trend. It does not capture all the (noisy) rises and falls
+ including the sharper increase among females during the 2000s and 
+the slower increase among males after around 2010
+
+```{r model_standardised_rates_calculation, echo=FALSE}
+
+predicted_rates <- expand.grid(
+  year = sort(unique(merged_data$year)),
+  sex = unique(merged_data$sex),
+  age_index = sort(unique(merged_data$age_index)),
+  n_pop = 1
+)
+
+predicted_rates$yhat <- predict(
+  m2,
+  newdata = predicted_rates,
+  type = "response"
+) * 100000
+
+model_weights <- merged_data %>%
+  filter(year == 2022) %>%
+  group_by(sex) %>%
+  mutate(weight = n_pop / sum(n_pop)) %>%
+  ungroup() %>%
+  select(sex, age_index, weight)
+
+model_standardised <- predicted_rates %>%
+  left_join(model_weights, by = c("sex", "age_index")) %>%
+  group_by(year, sex) %>%
+  summarise(
+    ASR = sum(weight * yhat),
+    .groups = "drop"
+  )
+
+# Combine with the direct estimates from Question 12.
+comparison <- bind_rows(
+  data_std %>%
+    transmute(
+      year, sex,
+      ASR = rate,
+      Method = "Direct standardisation"
+    ),
+  model_standardised %>%
+    mutate(Method = "Regression model (m2)")
+)
+```
+
+```{r model_standardised_rates_plot, echo=TRUE}
+ggplot(comparison,
+       aes(x = year, y = ASR, colour = Method)) +
+  geom_line(linewidth = 0.9) +
+  facet_wrap(~sex) +
+  labs(
+    x = "Calendar year",
+    y = "Age standardised incidence per 100 000",
+    colour = "Method",
+    title = "Direct and model based age standardised incidence",
+    subtitle = "sex specific age weights from 2022"
+  ) +
+  theme_minimal()
+```
+
+
+
+## Question 14 
+Our modelling focused on how incidence changed over calendar time and whether these time trends
+differed by age and sex. We therefore included age–year and sex–year interactions. 
+We omitted the age–sex interaction to  focuse on time trends therefore the male to female rate ratio is assumed to be the same across ages within each year.
+Without controlling for age the predicted male to female incidence rate ratio was $26.49/28.43 = 0.932$ in $1970$ and $49.20/51.09 = 0.963$ in $2020$. 
+Ttherefore predicted crude incidence was about $6.8\%$ and $3.7\%$ lower among males, respectively. 
+After controlling for age the corresponding ratios were 1.096 and 1.118, that is, higher predicted 
+incidence among males at the same age.Their increase suggests a slightly greater  increase(statistical significance not verified) in incidence among males between these years.eventhough the graphs in Questions 6 and 9 suggest higher overall incidence among females
+it does not imply higher incidence at the same age.
+
+Non-standardised rates are useful when describing the actual incidence in a population.
+ For example a healthcare planner could combine these rates with population size to estimate the  number 
+ of colon cancer cases. Age-standardised rates are useful when comparing incidence across calendar years while holding
+age composition constant. For example, comparing rates in 1970 and 2020 using the
+ same reference population helps assess whether incidence has increased beyond changes attributable to population ageing. 
