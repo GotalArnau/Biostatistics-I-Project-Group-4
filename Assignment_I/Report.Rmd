@@ -10,7 +10,7 @@ link-citations: true
 knitr::opts_chunk$set(
   echo = FALSE,
   message = FALSE,
-  error = FALSE,
+  warning = FALSE,
   fig.width = 6,
   fig.height = 3.5,
   out.width = "85%",
