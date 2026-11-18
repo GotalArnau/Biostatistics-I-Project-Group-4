@@ -5,23 +5,28 @@ output: pdf_document
 bibliography: references.bib
 link-citations: true
 ---
+
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  warning = FALSE,
-  message = FALSE
+  fig.width = 6,
+  fig.height = 3.5,
+  out.width = "85%",
+  fig.align = "center"
 )
 ```
 
 # Introduction
 
-In this report we analyze the incidence of colon cancer in Sweden across calender year as well as by age and sex. We do this with the goal of describing the incidence rate in different groups and with a particular focus on its development over calender year. We find that X
+In this report we analyze the incidence of colon cancer in Sweden across calender year as well as by age and sex. We do this with the goal of describing the incidence rate in different groups and with a particular focus on its development over calender year.
+
 
 ```{r}
 # Set up ------------------------------------------------------------------
 library(tidyverse)
 #library(rms)
 library(patchwork)
+
 
 # Import and Clean Data --------------------------------------------------- 
 cases_data <- read_tsv(
@@ -110,6 +115,7 @@ p3 <- p3  +
   plot_layout(heights = c(1, 1.35)) +
   plot_annotation(tag_levels = "A")
 ```
+
 We begin by exploring the number of colon cancer cases in each age group as well as by sex. Graph A in figure 1 tells us that the number of cases are greater in the older age groups. There are also some differences between males and females: females have a greater number of cases in the three oldest categories, while males, seemingly, have a greater number of cases in most other age groups. That by itself does not mean that women are more likely to have colon cancer.
 
 ## Question 2
@@ -133,20 +139,23 @@ where $d^{(t)}_{ij}$ denotes the number of cases, and $N^{(t)}_{ij}$ the total p
 There is, however, an issue with these estimates making them inappropriate: $N^{(t)}_{ij}$ is fixed for the whole year. Moreover, it could be measuring the population at the start of year $t$ or in the middle of year $t$, the exact reference points is unspecified in the data. A more appropriate measure would be to use the total person-time at risk in the denominator, allowing the measure to account for that the population at risk varies.
 
 ```{r question 5, echo = TRUE}
-
 # Q5: Stratum-specific and crude incidence rates
+# Age-specific incidence rates
 merged_data <- merged_data %>%
   mutate(
     incidence_rate = n_cases / n_pop,
     incidence_per_100000 = incidence_rate * 100000
   )
-## Crude
+
+# Crude incidence rates by year and sex
 total_data <- total_data %>%
   mutate(
     incidence_rate = total_cases / total_population,
     incidence_per_100000 = incidence_rate * 100000
   )
 ```
+
+In this study, the incident rate is the number of new cases of colon cancer in Sweden each year. The incidence rate was calculated by dividing the number of colon cancer cases by the population size. This is a reasonable approximation if the population is stable however using total person-time at risk rather than population size would be more precise.
 
 ## Question 6
 
@@ -270,7 +279,15 @@ pred_data %>%
 
 ```
 
-The calendar year was modeled as a continuous variable and was assumed to have a cubic relationship with the log incidence rate. This allows the annual percentage change in incidence rate to vary over time for each sex. The difference between males and females was taken into account by including interactions between sex and the polynomial terms of calendar year, allowing the annual changes in incidence rate to differ between males and females.
+The calendar year was modeled as a continuous variable
+and was assumed to have a cubic relationship with the
+log incidence rate. This allows the annual percentage
+change in incidence rate to vary over time for each sex.
+The difference between men and women was taken
+into account by including interactions between sex
+and the polynomial terms of calendar year, allowing
+the annual changes in incidence rate to differ
+between men and women.
 
 The Poisson regression model predicts an increase in incidence rate from 28.43 to 51.09 per 100,000 women and from 26.49 to 49.20 per 100,000 men between 1970 and 2020. The accuracy of these predictions depends on the assumption that a cubic relationship between calendar year and log incidence rate appropriately describes the observed trends.
 
@@ -309,9 +326,9 @@ ggplot(predicted_data, aes(x = year, y = predicted_rate)) +
 
 ```
 
-The predicted incidence rates for both sexes increase monotonically. In females, there is a clear nonlinear relationship between predicted incidence rate and calendar year, with a slower increase around 2000 followed by a stronger increase towards 2022. This change in slope is more clearly defined than in the observed incidence rates previously calculated.
+The predicted incidence rates for both sexes increase monotonically. In women, there is a clear nonlinear relationship between predicted incidence rate and calendar year, with a slower increase around 2000 followed by a stronger increase towards 2022. This change in slope is more clearly defined than in the observed incidence rates previously calculated.
 
-In males, the relationship appears almost linear, with less pronounced curvature than in the observed incidence rates. The predicted incidence rate remains higher in females throughout the observed period similarly to in the observed data.
+In men, the relationship appears almost linear, with less pronounced curvature than in the observed incidence rates. The predicted incidence rate remains higher in women throughout the observed period similarly to in the observed data.
 
 The LOESS smoother matches the predicted incidence rates closely which is expected as a cubic Poisson regression model produces a smooth trend.
 
