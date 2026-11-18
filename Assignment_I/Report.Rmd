@@ -1,6 +1,11 @@
 ---
 title: "Assignment 1"
-author: "Isak Truedson, Alice Aznar de Jongh, Arnau Gómez Català, Charlotte Carmen Ravelomanana Gonza, Aleksandr Terranova Chtyleva"
+author:
+  - "Isak Truedson"
+  - "Alice Aznar de Jongh"
+  - "Arnau Gómez Català"
+  - "Charlotte Carmen Ravelomanana Gonza"
+  - "Aleksandr Terranova Chtyleva"
 output: pdf_document
 bibliography: references.bib
 link-citations: true
@@ -138,7 +143,6 @@ r^{(t)}_{\cdot j} &= \frac{\sum_{i} d^{(t)}_{ij}}{\sum_{i} N^{(t)}_{ij}}, \tag{2
 \end{align*}
 $$
 where $d^{(t)}_{ij}$ denotes the number of cases, and $N^{(t)}_{ij}$ the total population.  
-There is, however, an issue with these estimates making them inappropriate: $N^{(t)}_{ij}$ is fixed for the whole year. Moreover, it could be measuring the population at the start of year $t$ or in the middle of year $t$, the exact reference points is unspecified in the data. A more appropriate measure would be to use the total person-time at risk in the denominator, allowing the measure to account for that the population at risk varies.
 
 ```{r question 5, echo = TRUE}
 # Q5: Stratum-specific and crude incidence rates
@@ -157,7 +161,7 @@ total_data <- total_data %>%
   )
 ```
 
-In this study, the incident rate is the number of new cases of colon cancer in Sweden each year. The incidence rate was calculated by dividing the number of colon cancer cases by the population size. This is a reasonable approximation if the population is stable however using total person-time at risk rather than population size would be more precise.
+There is, however, an issue with these estimates making them inappropriate: $N^{(t)}_{ij}$ is fixed for the whole year. Moreover, it could be measuring the population at the start of year $t$ or in the middle of year $t$, the exact reference points is unspecified in the data. A more appropriate measure would be to use the total person-time at risk in the denominator, allowing the measure to account for that the population at risk varies.
 
 ## Question 6
 
