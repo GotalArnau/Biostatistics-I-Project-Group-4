@@ -740,14 +740,9 @@ Non-standardised rates are useful when describing the actual incidence in a popu
 age composition constant. For example, comparing rates in 1970 and 2020 using the
  same reference population helps assess whether incidence has increased beyond changes attributable to population ageing. 
  
-<<<<<<< HEAD
-## Declaration of AI use
-AI was used 
-=======
-## AI declaration
+
+## Acknowledgement of the use of generative AI
+During the preparation of this work, the authors used GPT-5 Auto (Open AI, https://chat.openai.com/) to fix syntax and logistical errors in the code. After using this tool, the authors reviewed and edited the content and take full responsibility for the content of the work. 
 
 
 
-
-
->>>>>>> cdc124622c07c6fc903c9dd6c64e0c369876708d
