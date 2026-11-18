@@ -141,7 +141,7 @@ merged_data <- full_join(cases_data, population_data) |> rename("n_cases" = "n")
 anyNA(merged_data)
 
 ```
-We already merged the dataframes earlier, but here we explicitly check that the operation worked as intended, not producing any missing values.
+We already merged the dataframes earlier, but here we explicitly check that the operation worked as intended; not producing any missing values.
 
 # Question 5
 Next, we calculate the annual stratum-specific incidence rate of colon cancer (1) and the annual crude incidence rate (2). That is, the rate of new cases of colon cancer during each year in each age and sex group. Let $i$ denote the age group ($i = 1,\dots,A$), $j$ denote sex ($j \in \{\text{M},\text{F}\}$) and $t$ ($t \in \{1970, 1971, \dots, 2022\}$) denote calendar year, then for each calendar year $t$
@@ -739,14 +739,5 @@ Non-standardised rates are useful when describing the actual incidence in a popu
 age composition constant. For example, comparing rates in 1970 and 2020 using the
  same reference population helps assess whether incidence has increased beyond changes attributable to population ageing. 
  
-<<<<<<< HEAD
+
 ## Declaration of AI use
-AI was used 
-=======
-## AI declaration
-
-
-
-
-
->>>>>>> cdc124622c07c6fc903c9dd6c64e0c369876708d
