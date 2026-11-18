@@ -8,20 +8,25 @@ link-citations: true
 
 # Introduction
 
-In this report we analyze the incidence of colon cancer in Sweden across calender year as well as by age and sex. We do this with the goal of describing the incidence rate in different groups and with a particular focus on its development over calender year. We find that X
+In this report we analyze the incidence of colon cancer in Sweden across calender year as well as by age and sex. We do this with the goal of describing the incidence rate in different groups and with a particular focus on its development over calender year. 
 
-## Preamble: Loading data and initial set up
 
-We begin by loading the data, and setting up the dataframes needed for the analysis.
-
-```{r message = FALSE, warning = FALSE}
+```{r include=FALSE,message = FALSE, warning = FALSE}
 
 # Set up ------------------------------------------------------------------
 library(tidyverse)
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  fig.width = 6,
+  fig.height = 3.5,
+  out.width = "85%",
+  fig.align = "center"
+)
 #library(rms)
 ```
 
-```{r message = FALSE, warning = FALSE}
+```{r include=FALSE,message = FALSE, warning = FALSE}
 # Import and Clean Data --------------------------------------------------- 
 cases_data <- read_tsv(
   "cases-2.tsv",
@@ -50,7 +55,7 @@ merged_data <- full_join(cases_data, population_data) |> rename("n_cases" = "n")
 
 ## Question 1
 We begin by exploring the number of colon cancer cases in each age group as well as by sex.
-```{r question 1}
+```{r question 1 }
 #aggregate no. cases for all years by age group and plot
 merged_data |> 
   ggplot(aes(x = n_cases, y = agegroup, fill = sex)) + 
@@ -270,11 +275,11 @@ The calendar year was modeled as a continuous variable
 and was assumed to have a cubic relationship with the
 log incidence rate. This allows the annual percentage
 change in incidence rate to vary over time for each sex.
-The difference between males and females was taken
+The difference between men and women was taken
 into account by including interactions between sex
 and the polynomial terms of calendar year, allowing
 the annual changes in incidence rate to differ
-between males and females.
+between men and women.
 
 The Poisson regression model predicts an increase in
 incidence rate from 28.43 to 51.09 per 100,000 women
@@ -317,10 +322,9 @@ ggplot(predicted_data, aes(x = year, y = predicted_rate)) +
 
 
 ```
-The predicted incidence rates for both sexes increase monotonically. In females, there is a clear nonlinear relationship between predicted incidence rate and calendar year, with a slower increase around 2000 followed by a stronger increase towards 2022. This change in slope is more clearly defined than in the observed incidence rates previously calculated.
+The predicted incidence rates for both sexes increase monotonically. In women, there is a clear nonlinear relationship between predicted incidence rate and calendar year, with a slower increase around 2000 followed by a stronger increase towards 2022. This change in slope is more clearly defined than in the observed incidence rates previously calculated.
 
-In males, the relationship appears almost linear, with less pronounced curvature than in the observed
-incidence rates. The predicted incidence rate remains higher in females throughout the observed period similarly to in the observed data.
+In men, the relationship appears almost linear, with less pronounced curvature than in the observed incidence rates. The predicted incidence rate remains higher in women throughout the observed period similarly to in the observed data.
 
 The LOESS smoother matches the predicted incidence rates closely which is expected as a cubic Poisson regression model produces a smooth trend. 
 
