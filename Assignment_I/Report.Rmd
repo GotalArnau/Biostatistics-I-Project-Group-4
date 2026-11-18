@@ -600,16 +600,18 @@ the slower increase among males after around 2010
 
 ```{r model_standardised_rates_calculation, echo=FALSE}
 
-predicted_rates <- as.data.frame(
-  rms::Predict(
-    m2,
-    year = sort(unique(merged_data$year)),
-    sex = c("Female", "Male"),
-    age_index = sort(unique(merged_data$age_index)),
-    offset = list(n_pop = 1),
-    fun = function(x) exp(x) * 100000
-  )
+predicted_rates <- expand.grid(
+  year = sort(unique(merged_data$year)),
+  sex = unique(merged_data$sex),
+  age_index = sort(unique(merged_data$age_index)),
+  n_pop = 1
 )
+
+predicted_rates$yhat <- predict(
+  m2,
+  newdata = predicted_rates,
+  type = "response"
+) * 100000
 
 model_weights <- merged_data %>%
   filter(year == 2022) %>%
